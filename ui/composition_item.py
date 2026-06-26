@@ -80,6 +80,8 @@ class CompositionItem(QGraphicsPixmapItem):
         self._layout_scale = 1.0
         self._render_scale = 1.0
         self._render_ready = False
+        self._pixmap_offset_x = 0.0
+        self._pixmap_offset_y = 0.0
         self._block_item_change = False
         self._border = None
         self._handle = None
@@ -100,7 +102,6 @@ class CompositionItem(QGraphicsPixmapItem):
         if not same_scale:
             self._render_scale = min(self._render_scale, self._max_render_scale())
             self._rebuild_pixmap()
-            self._update_origin()
         self.setPos(self._full_x * self._layout_scale,
                     self._full_y * self._layout_scale)
         self._block_item_change = False
@@ -118,7 +119,6 @@ class CompositionItem(QGraphicsPixmapItem):
         self._render_scale = target
         self._block_item_change = True
         self._rebuild_pixmap()
-        self._update_origin()
         self._block_item_change = False
         self._rebuild_border()
 
@@ -136,9 +136,8 @@ class CompositionItem(QGraphicsPixmapItem):
         thumb.save(buf, 'PNG')
         buf.seek(0)
         self.setPixmap(QPixmap.fromImage(QImage.fromData(buf.getvalue())))
-        self.setScale(1.0 / self._render_scale)
         self._render_ready = True
-        self._update_origin()
+        self._update_geometry_transform()
 
     def set_full_pos(self, x, y):
         self._block_item_change = True
@@ -180,12 +179,29 @@ class CompositionItem(QGraphicsPixmapItem):
                 child.setVisible(bool(visible))
 
     def _content_rect(self):
-        return QRectF(0, 0, self.pixmap().width(), self.pixmap().height())
+        return QRectF(
+            self._pixmap_offset_x,
+            self._pixmap_offset_y,
+            self.pixmap().width(),
+            self.pixmap().height(),
+        )
 
-    def _update_origin(self):
+    def _update_geometry_transform(self):
         pm = self.pixmap()
         if not pm.isNull():
-            self.setTransformOriginPoint(pm.width() / 2, pm.height() / 2)
+            visual_w = self._full_w * self._layout_scale
+            visual_h = self._full_h * self._layout_scale
+            origin_x = visual_w / 2.0
+            origin_y = visual_h / 2.0
+            scale = 1.0 / max(self._render_scale, 0.001)
+            # Qt applies item scale around the same origin used for rotation.
+            # Offset the high-resolution pixmap so the scaled visual top-left
+            # still maps to item pos/full_pos instead of drifting with zoom.
+            self._pixmap_offset_x = -((1.0 - scale) * origin_x / scale)
+            self._pixmap_offset_y = -((1.0 - scale) * origin_y / scale)
+            self.setOffset(self._pixmap_offset_x, self._pixmap_offset_y)
+            self.setTransformOriginPoint(origin_x, origin_y)
+            self.setScale(scale)
 
     def _rebuild_border(self):
         for child in (self._border, self._handle_line, self._handle):
@@ -196,23 +212,44 @@ class CompositionItem(QGraphicsPixmapItem):
         self._border = None
         self._handle_line = None
         self._handle = None
-        pw, ph = self.pixmap().width(), self.pixmap().height()
-        r = QGraphicsRectItem(-1, -1, pw + 2, ph + 2, self)
+        content = self._content_rect()
+        scale = max(1.0 / max(self._render_scale, 0.001), 0.001)
+        handle_unit = 1.0 / scale
+        r = QGraphicsRectItem(
+            content.x() - handle_unit,
+            content.y() - handle_unit,
+            content.width() + handle_unit * 2,
+            content.height() + handle_unit * 2,
+            self,
+        )
         pen = QPen(QColor(0, 153, 204, 210), 2, Qt.PenStyle.DashLine)
         pen.setCosmetic(True)
         r.setPen(pen)
         r.setBrush(QColor(0, 0, 0, 0))
         self._border = r
-        line = QGraphicsRectItem(pw / 2 - 0.5, -30, 1, 30, self)
+        center_x = self.transformOriginPoint().x()
+        line_top = content.y() - 30 * handle_unit
+        line = QGraphicsRectItem(
+            center_x - 0.5 * handle_unit,
+            line_top,
+            handle_unit,
+            30 * handle_unit,
+            self,
+        )
         line_pen = QPen(QColor(0, 132, 190, 190), 1)
         line_pen.setCosmetic(True)
         line.setPen(line_pen)
         line.setBrush(QColor(0, 132, 190, 90))
         self._handle_line = line
         handle = _RotationHandle(self)
-        handle.setRect(pw / 2 - 7, -44, 14, 14)
+        handle.setRect(
+            center_x - 7 * handle_unit,
+            content.y() - 44 * handle_unit,
+            14 * handle_unit,
+            14 * handle_unit,
+        )
         self._handle = handle
-        self._update_origin()
+        self._update_geometry_transform()
         self.set_edit_handles_visible(self.isSelected())
 
     def itemChange(self, change, value):
@@ -246,22 +283,23 @@ class CompositionItem(QGraphicsPixmapItem):
 
     def sample_color_at_scene(self, scene_pos):
         local = self.mapFromScene(scene_pos)
-        if local.x() < 0 or local.y() < 0:
+        content = self._content_rect()
+        if not content.contains(local):
             return None
-        if local.x() >= self.pixmap().width() or local.y() >= self.pixmap().height():
-            return None
+        pix_x = local.x() - self._pixmap_offset_x
+        pix_y = local.y() - self._pixmap_offset_y
 
         pil = self._export.get('_full_pil') if self._export else None
         if pil:
             full_scale = self._layout_scale * self._render_scale
-            x = max(0, min(self._full_w - 1, int(local.x() / full_scale)))
-            y = max(0, min(self._full_h - 1, int(local.y() / full_scale)))
+            x = max(0, min(self._full_w - 1, int(pix_x / full_scale)))
+            y = max(0, min(self._full_h - 1, int(pix_y / full_scale)))
             color = pil.convert('RGBA').getpixel((x, y))
             return color[:3]
 
         image = self.pixmap().toImage()
-        x = max(0, min(image.width() - 1, int(local.x())))
-        y = max(0, min(image.height() - 1, int(local.y())))
+        x = max(0, min(image.width() - 1, int(pix_x)))
+        y = max(0, min(image.height() - 1, int(pix_y)))
         color = image.pixelColor(x, y)
         return (color.red(), color.green(), color.blue())
 
