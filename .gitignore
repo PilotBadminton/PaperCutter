@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.env
+.venv/
+venv/
+
+# Codex / agent-local workspace files
+.agents/
+.codex/
+
+# Build output
+build/
+dist/
+*.spec.log
+
+# Runtime config and generated output
+config.json
+output/
+
+# Local release bundles and user-facing media
+*.rar
+*.zip
+*.7z
+*.mp4
+*.mov
+*.avi
+切题辅助工具/
+使用说明备份.txt
+
+# External design/reference tools copied into the workspace
+ui-ux-pro-max-skill-2.5.0/
+
+# Historical unused visual experiments
+assets/aero/frutiger_aero_aquarium.png
