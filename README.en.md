@@ -8,6 +8,39 @@ This project is released under the **AGPL-3.0-only** license. The application cu
 
 > GitHub repository: [github.com/pilot123tjcu/PaperCutter](https://github.com/pilot123tjcu/PaperCutter)
 
+## Screenshots and Export Examples
+
+**Open your material and start organizing.** Select the parts you need from images and PDFs, including questions, answers, and handouts.
+
+![Main window with a PDF document open](展示样例/shot02.jpg)
+
+**Arrange the pieces your way.** Bring selections into the composition workspace to adjust their positions, rotation, and layer order.
+
+![Composition workspace with a title and table arranged together](展示样例/shot04.jpg)
+
+<details>
+<summary>More screenshots and export examples</summary>
+
+**Choose the background and spacing.** Use transparency, white, a custom color, or the eyedropper, and adjust export padding.
+
+![Composition workspace with eyedropper and padding controls](展示样例/shot06.jpg)
+
+**Turn source material into a finished layout.** Export the same pieces as PNG files with different backgrounds for notes, handouts, or further layout work. Click an image to view the original.
+
+| Transparent background | Custom-color background | White background with tighter padding |
+| --- | --- | --- |
+| [![Transparent PNG export](展示样例/题目_01.png)](展示样例/题目_01.png) | [![Custom-color PNG export](展示样例/题目_02.png)](展示样例/题目_02.png) | [![White-background PNG export](展示样例/题目_03.png)](展示样例/题目_03.png) |
+
+**More views:** the main window, saved selections, and background color selection.
+
+![Main window before opening a document](展示样例/shot01.jpg)
+
+![Zoomed document with a selection added to the list](展示样例/shot03.jpg)
+
+![Choosing a composition export background color](展示样例/shot05.jpg)
+
+</details>
+
 ## Features
 
 - Open JPG, JPEG, PNG, BMP, and PDF files.
