@@ -6,7 +6,7 @@ Paper Cutter Assistant is a local desktop tool for cutting questions, answers, w
 
 This project is released under the **AGPL-3.0-only** license. The application currently targets Windows desktop usage. End users are encouraged to download the self-contained EXE from GitHub Releases.
 
-> GitHub repository: [github.com/pilot123tjcu/PaperCutter](https://github.com/pilot123tjcu/PaperCutter)
+> GitHub repository: [github.com/PilotBadminton/PaperCutter](https://github.com/PilotBadminton/PaperCutter)
 
 ## Screenshots and Export Examples
 

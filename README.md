@@ -6,7 +6,7 @@
 
 本项目采用 **AGPL-3.0-only** 协议开源。项目仍以 Windows 桌面端为主要目标，推荐普通用户直接下载 Release 中提供的自包含 EXE。
 
-> GitHub 仓库地址：[github.com/pilot123tjcu/PaperCutter](https://github.com/pilot123tjcu/PaperCutter)
+> GitHub 仓库地址：[github.com/PilotBadminton/PaperCutter](https://github.com/PilotBadminton/PaperCutter)
 
 ## 界面与效果预览
 
